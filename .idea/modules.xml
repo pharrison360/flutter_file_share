@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/file_share.iml" filepath="$PROJECT_DIR$/file_share.iml" />
-      <module fileurl="file://$PROJECT_DIR$/android/file_share_android.iml" filepath="$PROJECT_DIR$/android/file_share_android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/example/android/file_share_example_android.iml" filepath="$PROJECT_DIR$/example/android/file_share_example_android.iml" />
     </modules>
   </component>
 </project>

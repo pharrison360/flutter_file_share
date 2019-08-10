@@ -12,31 +12,50 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
+import io.flutter.plugin.common.PluginRegistry;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /**
  * FileSharePlugin
  */
-public class FileSharePlugin implements MethodCallHandler {
+public class FileSharePlugin implements MethodCallHandler, PluginRegistry.ActivityResultListener {
 
-    private static Registrar registrar;
+    private static final int REQUEST_CODE = 1337;
+    private static final String PROVIDER_EXTENSION = ".fileprovider";
 
     /**
      * Plugin registration.
      */
     public static void registerWith(Registrar registrar) {
-        FileSharePlugin.registrar = registrar;
         final MethodChannel channel = new MethodChannel(registrar.messenger(), "file_share");
-        channel.setMethodCallHandler(new FileSharePlugin());
+        channel.setMethodCallHandler(new FileSharePlugin(registrar));
+    }
+
+    private Registrar mRegistrar;
+    private Result mResult;
+
+    private FileSharePlugin(Registrar registrar) {
+        mRegistrar = registrar;
+        mRegistrar.addActivityResultListener(this);
     }
 
     @Override
     public void onMethodCall(MethodCall call, Result result) {
+        mResult = result;
         if (call.method.equals("shareFile")) {
             share(call, result);
         } else {
             result.notImplemented();
         }
+    }
+
+    @Override
+    public boolean onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode != REQUEST_CODE || mResult == null)
+            return false;
+
+        mResult.success(null);
+        return true;
     }
 
     private void share(MethodCall call, Result result) {
@@ -46,8 +65,8 @@ public class FileSharePlugin implements MethodCallHandler {
         Uri fileUri;
         try {
             fileUri = FileProvider.getUriForFile(
-                    registrar.context(),
-                    registrar.activeContext().getPackageName() + ".fileprovider",
+                    mRegistrar.context(),
+                    mRegistrar.activeContext().getPackageName() + PROVIDER_EXTENSION,
                     fileToShare
             );
         } catch (IllegalArgumentException e) {
@@ -60,14 +79,7 @@ public class FileSharePlugin implements MethodCallHandler {
         shareIntent.setType(args.mimeType);
 
         Intent chooserIntent = Intent.createChooser(shareIntent, args.title);
-        if (registrar.activity() != null) {
-            registrar.activity().startActivity(chooserIntent);
-        } else {
-            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            registrar.context().startActivity(chooserIntent);
-        }
-
-        result.success(null);
+        mRegistrar.activity().startActivityForResult(chooserIntent, REQUEST_CODE);
     }
 
     private static class Args {

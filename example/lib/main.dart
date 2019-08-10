@@ -22,7 +22,12 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class _HomePage extends StatelessWidget {
+class _HomePage extends StatefulWidget {
+  @override
+  __HomePageState createState() => __HomePageState();
+}
+
+class __HomePageState extends State<_HomePage> {
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -46,8 +51,8 @@ class _HomePage extends StatelessWidget {
     var pathToFile = await _copyAssetToTempDir("assets/test.txt");
 
     try {
-      await FileShare.share(pathToFile, "text/plain",
-          title: "Sharing a text file");
+      await FileShare.share(pathToFile, "*", title: "Sharing a text file");
+      _showSnackBar("Text File shared!");
     } on Exception catch (e) {
       print(e);
     }
@@ -58,8 +63,10 @@ class _HomePage extends StatelessWidget {
 
     try {
       await FileShare.share(pathToFile, "image/png", title: "Sharing an image");
+      _showSnackBar("Image File shared!");
     } on Exception catch (e) {
       print(e);
+      _showSnackBar("Failed to share an image!");
     }
   }
 
@@ -69,7 +76,16 @@ class _HomePage extends StatelessWidget {
     var fileName = asset.substring(asset.lastIndexOf('/'));
     var filePath = "${tempDir.path}/$fileName";
     var file = new File(filePath);
-    await file.writeAsBytes(assetBytes.buffer.asUint8List());
+    if (! await file.exists()) {
+      await file.writeAsBytes(assetBytes.buffer.asUint8List());
+    }
     return filePath;
+  }
+
+  _showSnackBar(text) {
+    final snackBar = SnackBar(
+      content: Text(text),
+    );
+    Scaffold.of(context).showSnackBar(snackBar);
   }
 }
