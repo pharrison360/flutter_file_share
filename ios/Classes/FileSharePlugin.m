@@ -32,11 +32,24 @@
     
     [activityViewController.popoverPresentationController setSourceView:viewController.view];
     
-    [viewController presentViewController:activityViewController animated:YES completion:^{
+    activityViewController.completionWithItemsHandler = ^(NSString *activityType,
+                                                          BOOL completed,
+                                                          NSArray *returnedItems,
+                                                          NSError *error) {
+        if (completed) {
+            // user shared an item
+            result(nil);
+        } else {
+            // user cancelled
+            result(nil);
+        }
         
-    }];
+        if (error) {
+            result(nil);
+        }
+    };
     
-    result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
+    [viewController presentViewController:activityViewController animated:YES completion:nil];
 }
 
 @end
